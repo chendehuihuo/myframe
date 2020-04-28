@@ -1,16 +1,11 @@
 <p align="center">
-    <a href="https://github.com/chendehuihuo" target="_blank">
-        <img src="" height="100px">
-    </a>
-    <h1 align="center">LG</h1>
-    <br>
+    <h1 align="center">LGO</h1>
 </p>
-
-LG基于Gin和Gorm结合的应用程序框架，最适合快速创建小项目。
+LGO基于Gin和Gorm结合的应用程序框架，最适合快速创建小项目。
 
 该框架主要应用在接口方面使用
 
-
+这是19月自学go编写的，之前一直没有上传，后期会把里面其他集成全部去掉
 
 DIRECTORY STRUCTURE
 -------------------
