@@ -21,6 +21,7 @@ func init() {
 	if err != nil {
 		return
 	}
+	SqlDB.SingularTable(true)
 	return
 }
 

@@ -14,7 +14,9 @@ type Name struct {
 func (t *Name) TableName() string {
 	return "name"
 }
-
+func init(){
+	db.SqlDB.Table("name")
+}
 func (p *Name) AddPerson() (id int64, err error) {
 	var name = Name{Name: p.Name, Time:p.Time}
 	err=db.SqlDB.Create(&name).Error

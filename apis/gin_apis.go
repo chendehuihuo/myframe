@@ -1,6 +1,8 @@
 package apis
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"github.com/gin-gonic/gin"
 	"myframe/components"
 )
@@ -39,6 +41,17 @@ func jsonSuccess(c *gin.Context) {
 //数据转换
 func conver(){
 
+}
+
+func tablename(str string) string{
+	return "ims_"+str;
+}
+
+
+func MD5(text string) string {
+	ctx := md5.New()
+	ctx.Write([]byte(text))
+	return hex.EncodeToString(ctx.Sum(nil))
 }
 
 //func listpage(c *gin.Context){

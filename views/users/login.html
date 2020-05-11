@@ -1,0 +1,231 @@
+{{define "users/login.html"}}
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no">
+    <script> document.documentElement.style.fontSize =document.documentElement.clientWidth/750*40 +"px";</script>
+    <meta name="format-detection" content="telephone=no" />
+    <title>{if empty($this->merch_user)}{$_W['shopset']['shop']['name']}{else}{php echo $this->merch_user['merchname']}{/if}</title>
+
+    <link rel="stylesheet" type="text/css" href="http://www.weiq.com/addons/ewei_shopv2/template/mobile/default/static/css/style.css?v={php echo time()}">
+    <script src="http://www.weiq.com/app/resource/js/lib/jquery-1.11.1.min.js"></script>
+</head>
+
+<body ontouchstart>
+
+<div class="login_popover" >
+    <div class="ctx">
+        <div class="logo">
+            <img src="http://www.weiq.com/addons/ewei_shopv2/static/images/logo.png" alt="" >
+        </div>
+        <div class="vcinput">
+            <img src="http://www.weiq.com/addons/ewei_shopv2/static/images/iphone.png"/>
+            <input type="tel" class="logininput mobile" placeholder="请输入你的手机号">
+        </div>
+        <div class="vcinput">
+            <img src="http://www.weiq.com/addons/ewei_shopv2/static/images/code.png"/>
+            <input type="tel" class="logininput vcode" placeholder="请输入验证码" maxlength="5">
+            <span class="vcbtn" id="vcbtn">获取验证码</span>
+        </div>
+        <div class="loginbtn weixin" style="display: none;">微信授权</div>
+        <div class="loginbtn">登录</div>
+    </div>
+</div>
+
+<div class="join" style="display: none;">
+    <div class="userInfo">
+        <img src="http://www.weiq.com/addons/ewei_shopv2/static/images/logo.png" alt="" />
+        <p class="name"></p>
+        <p class="intro">邀请你加入他/她的团队</p>
+    </div>
+    {if is_jsweixin()}
+    <h5>邀请码:<span id="id"></span></h5>
+    {/if}
+    <a class="confirm">确定</a>
+</div>
+
+<div class="invitation" style="display: none;">
+    <div class="invitation-con">
+        <h3>请输入邀请码</h3>
+        <input type="tel" class="invitationcode " placeholder="请输入邀请码" value="">
+        <div class="clear" style="width: 80%;margin: auto;">
+            <span class="left cancel">取消</span>
+            <span class="left confirm">确定</span>
+        </div>
+    </div>
+</div>
+<script src="http://www.weiq.com/addons/ewei_shopv2/plugin/pc/static/layui/layui.js"></script>
+<script type="text/javascript">
+    function getIsWxClient () {
+        var ua = navigator.userAgent.toLowerCase();
+        if (ua.match(/MicroMessenger/i) == "micromessenger") {
+            return true;
+        }
+        return false;
+    };
+    if(getIsWxClient ()){
+
+    }
+    layui.use(['layer', 'form'], function(){
+        var layer = layui.layer
+            ,form = layui.form;
+        $('.weixin').click(function(){
+            window.location.href='https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx175ca7e51bf9874d&redirect_uri=http%3A%2F%2Fwww.wsypshop.com%2Fapp%2Findex.php%3Fi%3D2%26c%3Dentry%26m%3Dewei_shopv2%26do%3Dmobile&response_type=code&scope=snsapi_userinfo#wechat_redirect';
+        })
+        $('body').on('click','#vcbtn',function(event){
+            event.preventDefault();
+            var s=60;
+            var that=$(this);
+            const mobile = $('.mobile').val();// 手机号
+            const patt = /^1[3-9]\d{9}$/;
+            if (!patt.test(mobile)) {
+                layer.msg('请填写正确的手机号！');
+                return;
+            }
+
+            $.ajax({
+                url: "{php echo mobileUrl('account/verifycode')}",
+                data: {mobile:mobile, temp:'sms_bind'},
+                type: 'post',
+                dataType: 'json',
+                success: function (res) {
+                    if(res.status==1){
+                        var set=setInterval(function(){
+                            s--;
+                            that.text(s+'秒重新获取').addClass('disabled');
+
+                        },1000)
+                        setTimeout(function(){
+                            that.text("重新获取验证码").removeClass('disabled');
+                            clearInterval(set);
+                        }, 60000);
+                    }else{
+                        layer.msg('发送失败，请稍后重试');
+                    }
+                }
+            });
+        });
+
+        function getUrlParam(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+            var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+            if (r != null) return unescape(r[2]); return null; //返回参数值
+        }
+        $('body').on('click','.invitation .cancel',function(event){
+            $('.invitation').hide();
+            window.location.reload();
+        });
+        // 点击登录
+        $('.loginbtn').on('click', function () {
+            var id=getUrlParam('mid');
+            const mobile = $('.mobile').val();// 手机号
+            const code = $('.vcode').val();// 验证码
+            if(mobile==''){
+                layer.msg('请填写手机号！');
+                return;
+            }
+
+            if(code==''){
+                layer.msg('请填写验证码！');
+                return;
+            }
+
+            // 登录
+            $.ajax({
+                url: "ajax_login",
+                data: {mobile, code,'loginwanshun':1,'mid':"2427"},
+                type: 'post',
+                dataType: 'json',
+                success: function (res) {
+
+                    if (res.code == 1 && res.data.showInvite === false) {
+                        // 直接登录
+                        layer.msg("正在登录. . .");
+                        window.location.reload();
+                    } else if (res.code == 1 && res.data.showInvite === true) {
+
+                        if(res.data.isInvite){
+                            // 邀请码过来的
+                            $('.join').show();
+                            $('.userInfo img').attr('src',res.invite_info.invite_user_head);
+                            $('.userInfo .name').text(res.invite_info.invite_user_nick);
+                            $('#id').text(res.incode);
+
+                            $('.login_popover').hide();
+                            return;
+                        } else {
+                            // 非邀请码过来的【仅首次注册的会员弹出】
+                            $('.invitation').show();
+                            $('.login_popover').hide();
+                        }
+
+                    } else if (res.code == 0) {
+                        layer.msg(res.msg);
+                        return;
+                    }
+                }
+            });
+        });
+
+        // 有邀请码的确定
+        $('.join .confirm').on('click', function () {
+            const incode=$('#id').text();
+            $.ajax({
+                url: "{php echo mobileUrl('index/update_from_invite')}",
+                data: {incode},
+                type: 'post',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.code == 1) {
+                        window.location.reload();
+                    } else if (res.code == -1) {
+                        layer.msg(res.msg);
+                        return;
+                    }
+                }
+            });
+        });
+
+        // 无邀请码的确定
+        $('.invitation .confirm').on('click', function () {
+            const incode=$('.invitationcode').val();
+            if(incode==''){
+                layer.msg('请填写邀请码！');
+                return;
+            }
+
+            $.ajax({
+                url: "{php echo mobileUrl('index/update_from_invite')}",
+                data: {incode},
+                type: 'post',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.code == 1) {
+                        window.location.reload();
+                    } else if (res.code == -1) {
+                        layer.msg(res.msg);
+                        return;
+                    }
+                }
+            });
+        });
+
+    });
+
+    // 微信自带的浏览器在IOS中的bug【input带起键盘高度】
+    $("input,select,textarea").blur(function(){
+        setTimeout(function() {
+            var scrollHeight = document.documentElement.scrollTop || document.body.scrollTop || 0;
+            window.scrollTo(0, Math.max(scrollHeight - 1, 0));
+        }, 100);
+    });
+</script>
+<div id="homeSta" class='fui-page-group {if is_h5app()}statusbar{/if}'>
+    {if is_h5app()}
+    <div id="homeSta2" class="fui-statusbar"></div>
+    {/if}
+</div>
+</body>
+</html>
+{{end}}

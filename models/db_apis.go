@@ -1,16 +1,21 @@
 package models
 
-//
-//import (
-//	"errors"
-//	"fmt"
-//	"github.com/jinzhu/gorm"
-//	"reflect"
-//	"strconv"
-//	"strings"
-//	db "www/newland/database"
-//)
-//
+
+import (
+	//"errors"
+	//"fmt"
+	//"github.com/jinzhu/gorm"
+	//"reflect"
+	//"strconv"
+	//"strings"
+	//"github.com/jinzhu/gorm"
+	db "myframe/database"
+)
+var Db=db.SqlDB
+func tablename(str string) string{
+	return "ims_"+str;
+}
+
 //const redisPrefix = "ginbro:"
 //PaginationQuery gin handler query binding struct
 //type PaginationQuery struct {
